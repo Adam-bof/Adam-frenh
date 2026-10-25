@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2, Loader2, ShieldCheck, Sparkles, X } from 'lucide-react';
+import { CheckCircle2, Copy, Download, Loader2, Mail, ShieldCheck, Sparkles, X } from 'lucide-react';
 import { FounderReservation, PlanTier } from '../types';
 
 interface FounderModalProps {
@@ -26,6 +26,7 @@ export const FounderModal: React.FC<FounderModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [confirmedReservation, setConfirmedReservation] = useState<FounderReservation | null>(null);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   useEffect(() => {
     if (initialTier) {
@@ -42,6 +43,10 @@ export const FounderModal: React.FC<FounderModalProps> = ({
     setIsSubmitting(true);
 
     const reservationNum = 50 - remainingSpots + 1;
+    const passCode = `LC-00${reservationNum}`;
+    const lifetimeCode = 'FOUNDER-19-LIFETIME';
+    const rateText = planTier === 'firm-pro' ? '$59/month' : '$19/month flat (35% off for life)';
+
     const newReservation: FounderReservation = {
       id: `res-${Date.now()}`,
       fullName: fullName.trim(),
@@ -54,7 +59,28 @@ export const FounderModal: React.FC<FounderModalProps> = ({
       reservationNumber: reservationNum
     };
 
-    // 1. Dispatch directly to founder's email via FormSubmit AJAX API
+    // Automated professional welcome email body sent to the user's inbox
+    const automatedWelcomeMessage = `Hi ${fullName.trim()},
+
+Thank you for securing your early Founder Pass for LedgerChaser!
+
+Here are your confirmed reservation details:
+- Reservation Pass: #${passCode}
+- Accounting Firm: ${firmName.trim() || 'Independent Practice'}
+- Locked-in Lifetime Rate: ${rateText}
+- Your Activation Code: ${lifetimeCode}
+- 30-Day Money-Back Guarantee: Active upon onboarding
+
+What happens next:
+We are rolling out LedgerChaser to our first 50 founding accounting practices in controlled weekly batches. You will receive your direct login credentials and Google Drive sync authorization prior to general public release.
+
+In the meantime, feel free to reply directly to this email if you have specific workflow requirements, custom document templates, or questions.
+
+Warm regards,
+The LedgerChaser Team
+https://adam-frenh-kohl.vercel.app/`;
+
+    // Dispatch lead notification to founder + automated welcome email to subscriber via FormSubmit
     try {
       await fetch('https://formsubmit.co/ajax/frenkhood@gmail.com', {
         method: 'POST',
@@ -65,6 +91,8 @@ export const FounderModal: React.FC<FounderModalProps> = ({
         body: JSON.stringify({
           _subject: `🔔 New LedgerChaser Lead: ${fullName.trim()} (${firmName.trim() || 'Solo Firm'})`,
           _template: 'table',
+          _replyto: 'frenkhood@gmail.com',
+          _autoresponse: automatedWelcomeMessage,
           'Full Name': fullName.trim(),
           'Work Email': email.trim(),
           'Firm Name': firmName.trim() || 'Independent Practice',
@@ -76,7 +104,8 @@ export const FounderModal: React.FC<FounderModalProps> = ({
               ? 'Standard Solo ($29/mo)'
               : 'Multi-Staff Firm ($59/mo)',
           'Current Chasing Method': currentMethod,
-          'Reservation Number': `#LC-00${reservationNum}`,
+          'Reservation Number': `#${passCode}`,
+          'Automated Email': `Dispatched automatically to ${email.trim()}`,
           'Submission Timestamp': new Date().toLocaleString()
         })
       });
@@ -84,7 +113,7 @@ export const FounderModal: React.FC<FounderModalProps> = ({
       console.warn('Form submission notification dispatch error (fallback to local)', err);
     }
 
-    // 2. Save backup to browser localStorage
+    // Save backup to browser localStorage
     try {
       const existing = JSON.parse(localStorage.getItem('ledgerchaser_reservations') || '[]');
       localStorage.setItem('ledgerchaser_reservations', JSON.stringify([...existing, newReservation]));
@@ -96,6 +125,12 @@ export const FounderModal: React.FC<FounderModalProps> = ({
     setConfirmedReservation(newReservation);
     setIsSubmitted(true);
     onReservationSuccess(newReservation);
+  };
+
+  const handleCopyCode = () => {
+    navigator.clipboard?.writeText('FOUNDER-19-LIFETIME');
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
   };
 
   const getTierLabel = (tier: PlanTier) => {
@@ -138,7 +173,7 @@ export const FounderModal: React.FC<FounderModalProps> = ({
                 : 'Lock In $19/mo Lifetime Founder Access'}
             </h3>
             <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-              Eliminate client password friction and month-end cat-herding. Your reservation code will be emailed directly to you with priority onboarding access.
+              Eliminate client password friction and month-end cat-herding. An automated confirmation with your activation pass will be sent directly to your email.
             </p>
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-4 text-xs">
@@ -168,7 +203,7 @@ export const FounderModal: React.FC<FounderModalProps> = ({
               </div>
 
               <div>
-                <label className="font-semibold text-slate-200">Work Email (Where you receive client updates)</label>
+                <label className="font-semibold text-slate-200">Work Email (Where your welcome pass will be sent)</label>
                 <input
                   type="email"
                   required
@@ -231,7 +266,7 @@ export const FounderModal: React.FC<FounderModalProps> = ({
                   {isSubmitting ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Confirming & Dispatching Pass...</span>
+                      <span>Dispatching Automated Pass...</span>
                     </>
                   ) : (
                     <span>
@@ -243,7 +278,7 @@ export const FounderModal: React.FC<FounderModalProps> = ({
                 </button>
                 <div className="flex items-center justify-center gap-1.5 mt-2.5 text-[11px] text-slate-400">
                   <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-                  <span>No credit card charged today. Direct notification sent to founder.</span>
+                  <span>Instant automated confirmation email sent. Zero credit card needed today.</span>
                 </div>
               </div>
             </form>
@@ -259,13 +294,15 @@ export const FounderModal: React.FC<FounderModalProps> = ({
               Reservation Confirmed & Logged
             </span>
             <h3 className="text-2xl font-bold text-white mt-1">Welcome to the Founding Cohort!</h3>
-            <p className="text-xs text-slate-300 mt-2">
-              We have reserved Founder Pass <strong>#{confirmedReservation?.reservationNumber}</strong> for{' '}
-              <span className="text-white font-semibold">{email}</span>. A copy of your reservation details has been routed to our team.
-            </p>
+            
+            {/* Automatic Email Notification Badge */}
+            <div className="mt-3 inline-flex items-center gap-2 bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs px-3.5 py-1.5 rounded-full">
+              <Mail className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+              <span>An automated welcome confirmation was sent to <strong>{email}</strong></span>
+            </div>
 
             {/* Founder Digital Pass Box */}
-            <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-5 text-left text-xs font-mono space-y-2">
+            <div className="mt-5 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-5 text-left text-xs font-mono space-y-2">
               <div className="flex justify-between text-slate-400">
                 <span>PASS NUMBER:</span>
                 <span className="text-white font-bold">#LC-00{confirmedReservation?.reservationNumber}</span>
@@ -280,13 +317,20 @@ export const FounderModal: React.FC<FounderModalProps> = ({
                   {planTier === 'firm-pro' ? '$59 / Month' : '$19 / Month Flat'}
                 </span>
               </div>
-              <div className="flex justify-between text-slate-400">
-                <span>EXCLUSIVE CODE:</span>
-                <span className="text-emerald-400 font-bold">FOUNDER-19-LIFETIME</span>
+              <div className="flex justify-between items-center text-slate-400 pt-1 border-t border-white/5">
+                <span>ACTIVATION CODE:</span>
+                <button
+                  onClick={handleCopyCode}
+                  className="flex items-center gap-1 text-emerald-400 font-bold hover:underline"
+                >
+                  <span>FOUNDER-19-LIFETIME</span>
+                  <Copy className="h-3 w-3" />
+                </button>
               </div>
             </div>
+            {copiedCode && <span className="text-[11px] text-emerald-400 mt-1 block">Code copied to clipboard!</span>}
 
-            <div className="mt-6">
+            <div className="mt-6 flex flex-col gap-2">
               <button
                 onClick={onClose}
                 className="w-full rounded-xl bg-white/10 hover:bg-white/20 py-2.5 text-xs font-semibold text-white transition-all"
