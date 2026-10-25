@@ -1,0 +1,6 @@
+{
+  "name": "LedgerChaser - Client Document Chasing for Bookkeepers",
+  "description": "Stop being the human alarm clock. Automated, zero-login magic links to collect client bank statements and receipts with direct cloud sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
