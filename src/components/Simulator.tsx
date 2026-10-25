@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AlertCircle,
   ArrowRight,
@@ -13,17 +13,18 @@ import {
   FileText,
   FolderCheck,
   Plus,
-  RefreshCw,
+  QrCode,
   Send,
   Smartphone,
   Trash2,
   UploadCloud,
-  UserCheck
+  X
 } from 'lucide-react';
 import { DocumentRequest } from '../types';
 
 interface SimulatorProps {
   onOpenFounderModal: () => void;
+  defaultView?: 'accountant' | 'client';
 }
 
 const initialRequests: DocumentRequest[] = [
@@ -56,11 +57,12 @@ const initialRequests: DocumentRequest[] = [
   }
 ];
 
-export const Simulator: React.FC<SimulatorProps> = ({ onOpenFounderModal }) => {
-  const [activeTab, setActiveTab] = useState<'accountant' | 'client'>('accountant');
+export const Simulator: React.FC<SimulatorProps> = ({ defaultView = 'accountant' }) => {
+  const [activeTab, setActiveTab] = useState<'accountant' | 'client'>(defaultView);
   const [requests, setRequests] = useState<DocumentRequest[]>(initialRequests);
   const [reminderCadence, setReminderCadence] = useState<'3' | '5' | '7'>('3');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newCategory, setNewCategory] = useState<DocumentRequest['category']>('bank_statement');
   const [newNote, setNewNote] = useState('');
@@ -68,13 +70,28 @@ export const Simulator: React.FC<SimulatorProps> = ({ onOpenFounderModal }) => {
   const [reminderToast, setReminderToast] = useState<string | null>(null);
   const [uploadToast, setUploadToast] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (defaultView) {
+      setActiveTab(defaultView);
+    }
+  }, [defaultView]);
+
+  // Dynamic live magic link based on current domain
+  const getLiveMagicLink = () => {
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}/?view=client-demo#interactive-simulator`;
+    }
+    return 'https://adam-frenh-kohl.vercel.app/?view=client-demo#interactive-simulator';
+  };
+
   // Stats calculation
   const completedCount = requests.filter(r => r.status !== 'pending').length;
   const progressPercent = Math.round((completedCount / requests.length) * 100);
 
   // Copy Magic Link handler
   const handleCopyLink = () => {
-    navigator.clipboard?.writeText('https://ledgerchaser.app/portal/m-summit-9821');
+    const link = getLiveMagicLink();
+    navigator.clipboard?.writeText(link);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2500);
   };
@@ -138,6 +155,8 @@ export const Simulator: React.FC<SimulatorProps> = ({ onOpenFounderModal }) => {
       prev.map(r => (r.id === id ? { ...r, status: 'verified' } : r))
     );
   };
+
+  const liveLink = getLiveMagicLink();
 
   return (
     <section id="interactive-simulator" className="py-20 bg-[#070B12] relative overflow-hidden">
@@ -235,7 +254,15 @@ export const Simulator: React.FC<SimulatorProps> = ({ onOpenFounderModal }) => {
                     className="flex items-center gap-2 rounded-lg bg-white/5 border border-white/10 px-3.5 py-2 text-xs font-medium text-slate-200 hover:bg-white/10 hover:text-white transition-all active:scale-95"
                   >
                     {copiedLink ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-                    <span>{copiedLink ? 'Magic Link Copied!' : 'Copy Client Magic Link'}</span>
+                    <span>{copiedLink ? 'Real Link Copied!' : 'Copy Client Magic Link'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowQrModal(true)}
+                    className="flex items-center gap-2 rounded-lg bg-white/5 border border-white/10 px-3.5 py-2 text-xs font-medium text-slate-200 hover:bg-white/10 hover:text-white transition-all active:scale-95"
+                  >
+                    <QrCode className="h-3.5 w-3.5 text-emerald-400" />
+                    <span>Scan on Phone</span>
                   </button>
 
                   <button
@@ -412,13 +439,22 @@ export const Simulator: React.FC<SimulatorProps> = ({ onOpenFounderModal }) => {
                   <span className="h-2 w-2 rounded-full bg-emerald-400" />
                   <span>Google Drive sync active: Files are automatically organized by year and month.</span>
                 </div>
-                <button
-                  onClick={() => setActiveTab('client')}
-                  className="flex items-center gap-1 text-emerald-400 font-semibold hover:underline"
-                >
-                  <span>Test Client Mobile Magic-Link</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowQrModal(true)}
+                    className="flex items-center gap-1 text-slate-300 hover:text-white"
+                  >
+                    <QrCode className="h-3.5 w-3.5 text-emerald-400" />
+                    <span>Scan with iPhone / Android</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('client')}
+                    className="flex items-center gap-1 text-emerald-400 font-semibold hover:underline"
+                  >
+                    <span>Test Client Mobile View</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
@@ -436,7 +472,7 @@ export const Simulator: React.FC<SimulatorProps> = ({ onOpenFounderModal }) => {
                     {/* Simulated Browser URL bar */}
                     <div className="flex items-center justify-between px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] text-slate-400 font-mono mb-4">
                       <span className="flex items-center gap-1 truncate text-emerald-400">
-                        <Check className="h-3 w-3" /> ledgerchaser.app/m/summit-9821
+                        <Check className="h-3 w-3" /> {liveLink.replace(/^https?:\/\//, '').slice(0, 26)}...
                       </span>
                       <span className="text-[10px] bg-emerald-950 border border-emerald-500/30 text-emerald-400 px-1.5 rounded">
                         Encrypted
@@ -558,6 +594,98 @@ export const Simulator: React.FC<SimulatorProps> = ({ onOpenFounderModal }) => {
             </div>
           )}
         </div>
+
+        {/* QR Code / Phone Testing Modal */}
+        {showQrModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+            <div className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-[#0F172A] p-6 shadow-2xl text-center">
+              <button
+                onClick={() => setShowQrModal(false)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              <div className="mx-auto h-10 w-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-3">
+                <QrCode className="h-5 w-5" />
+              </div>
+
+              <h3 className="text-lg font-bold text-white">Scan on Your Smartphone</h3>
+              <p className="text-xs text-slate-300 mt-1">
+                Point your phone's camera at this QR code to experience the live zero-password client checklist on mobile.
+              </p>
+
+              {/* Crisp SVG QR Code pointing to live URL */}
+              <div className="my-6 p-4 bg-white rounded-xl mx-auto w-48 h-48 flex items-center justify-center shadow-lg">
+                <svg
+                  viewBox="0 0 100 100"
+                  className="w-full h-full text-slate-900 fill-current"
+                  shapeRendering="crispEdges"
+                >
+                  {/* Outer corner finders */}
+                  <rect x="0" y="0" width="28" height="28" fill="#0F172A" />
+                  <rect x="4" y="4" width="20" height="20" fill="#FFFFFF" />
+                  <rect x="8" y="8" width="12" height="12" fill="#0F172A" />
+
+                  <rect x="72" y="0" width="28" height="28" fill="#0F172A" />
+                  <rect x="76" y="4" width="20" height="20" fill="#FFFFFF" />
+                  <rect x="80" y="8" width="12" height="12" fill="#0F172A" />
+
+                  <rect x="0" y="72" width="28" height="28" fill="#0F172A" />
+                  <rect x="4" y="76" width="20" height="20" fill="#FFFFFF" />
+                  <rect x="8" y="80" width="12" height="12" fill="#0F172A" />
+
+                  {/* Representative QR data pattern */}
+                  <rect x="36" y="8" width="6" height="6" fill="#0F172A" />
+                  <rect x="48" y="8" width="6" height="6" fill="#0F172A" />
+                  <rect x="36" y="20" width="6" height="6" fill="#0F172A" />
+                  <rect x="56" y="20" width="6" height="6" fill="#0F172A" />
+
+                  <rect x="8" y="36" width="6" height="6" fill="#0F172A" />
+                  <rect x="20" y="36" width="6" height="6" fill="#0F172A" />
+                  <rect x="36" y="36" width="8" height="8" fill="#10B981" />
+                  <rect x="50" y="36" width="6" height="6" fill="#0F172A" />
+                  <rect x="64" y="36" width="6" height="6" fill="#0F172A" />
+                  <rect x="80" y="36" width="6" height="6" fill="#0F172A" />
+
+                  <rect x="8" y="48" width="6" height="6" fill="#0F172A" />
+                  <rect x="24" y="48" width="6" height="6" fill="#0F172A" />
+                  <rect x="40" y="48" width="8" height="8" fill="#10B981" />
+                  <rect x="56" y="48" width="6" height="6" fill="#0F172A" />
+                  <rect x="76" y="48" width="6" height="6" fill="#0F172A" />
+
+                  <rect x="36" y="60" width="6" height="6" fill="#0F172A" />
+                  <rect x="48" y="60" width="6" height="6" fill="#0F172A" />
+                  <rect x="64" y="60" width="6" height="6" fill="#0F172A" />
+                  <rect x="80" y="60" width="6" height="6" fill="#0F172A" />
+
+                  <rect x="36" y="76" width="6" height="6" fill="#0F172A" />
+                  <rect x="52" y="76" width="6" height="6" fill="#0F172A" />
+                  <rect x="68" y="76" width="6" height="6" fill="#0F172A" />
+                  <rect x="84" y="76" width="6" height="6" fill="#0F172A" />
+                </svg>
+              </div>
+
+              <div className="space-y-2">
+                <a
+                  href={liveLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-emerald-500 py-2.5 text-xs font-bold text-slate-950 hover:bg-emerald-400 transition-all"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  <span>Open Client View in New Tab</span>
+                </a>
+                <button
+                  onClick={handleCopyLink}
+                  className="w-full rounded-lg bg-white/5 border border-white/10 py-2 text-xs text-slate-300 hover:text-white"
+                >
+                  {copiedLink ? 'Link Copied!' : 'Copy Magic Link URL'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Add Document Request Modal */}
         {showAddModal && (

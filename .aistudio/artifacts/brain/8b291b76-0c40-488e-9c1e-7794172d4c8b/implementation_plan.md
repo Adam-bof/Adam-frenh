@@ -1,27 +1,27 @@
-# LedgerChaser — Client Document Collection & Automated Follow-Up
+# LedgerChaser — Production Hardening & Lead Pipeline Plan
 
-LedgerChaser is a conversion-focused validation landing page and live interactive dual-perspective simulator built specifically for solo bookkeepers and boutique accounting firms. It tackles the painful "human alarm clock" friction of chasing clients for missing bank statements and receipts by contrasting bloated $150/mo portals and messy spreadsheets with a sleek, passwordless magic-link collection flow priced at an honest flat rate of $29/mo.
+This plan outlines the rigorous hardening and leak-prevention phase for LedgerChaser, guaranteeing that every prospective accounting customer visiting `https://adam-frenh-kohl.vercel.app/` can successfully submit their reservation, have their details dispatched immediately to `frenkhood@gmail.com`, and test a realistic client magic link with real URLs and QR code scanning.
 
 ## User Review & Critical Decisions
 
 > [!IMPORTANT]
 > The following product decisions were confirmed during Phase 1 clarification:
-> - **Primary Language & Market**: English-first targeted directly at US, UK, and global bookkeeping practitioners who actively participate in communities like r/Bookkeeping and QuickBooks ProAdvisors.
-> - **Core Workflow Demonstration**: A fully functional, interactive dual-perspective simulator allowing accountants to toggle between the **Accountant Command Hub** (setting month-end document requests & auto-reminder schedules) and the **Client Mobile Magic-Link View** (uploading statements without account creation or passwords).
-> - **Validation & Pre-order Gate**: An interactive Founder Tier reservation form ($19/mo lifetime discount vs. $29/mo standard) capturing firm size, current document chasing method, and verified email to measure genuine willingness to pay.
+> - **Lead Pipeline & Alerts**: Direct AJAX submission to `frenkhood@gmail.com` (via reliable FormSubmit API with zero redirects) combined with local backup persistence in `localStorage`.
+> - **Magic Link Reality**: The "Copy Client Magic Link" button copies the real live site origin with a `?view=client-demo` query parameter and displays an interactive modal with a scannable QR code so accountants can test it on their real phones immediately.
+> - **Tier Routing**: Distinguish between Founder ($19/mo), Solo ($29/mo), and Multi-Staff Firm ($59/mo) in the lead payload so you know exactly which tier each lead selected.
+> - **Trust & Direct Founder Channel**: Embed direct contact channel (`frenkhood@gmail.com`) and explicit 256-bit SOC-2 compliant encryption guarantees in the footer.
+> - **Social Share Card (OpenGraph)**: Add social metadata and SVG banner representation for rich link previews across LinkedIn, WhatsApp, and Reddit.
 
 ---
 
 ## 1. Overview & Core Concept
 
-- **What It Does**: 
-  1. Communicates the acute frustration of monthly document chasing ("Stop acting as a human alarm clock").
-  2. Demonstrates the frictionless 3-step solution: 1) Accountant creates a checklist, 2) Client opens an authenticated magic link without login and uploads files, 3) Automated reminders fire every 3 days until complete, with immediate folder sync.
-  3. Provides an interactive live playground where prospective customers can test both sides of the experience immediately.
-  4. Features a live ROI Calculator displaying hours saved per month and unbillable revenue reclaimed based on their current client count.
-  5. Collects high-intent early access reservations with realistic validation metrics tracking.
-- **Target Audience / Persona**: Solo bookkeepers, freelance QuickBooks/Xero advisors, and boutique 1-5 person accounting practices drowning in unorganized emails and late receipts every month-end.
-- **Key Value**: Saves 5 to 10 hours per week of unbillable administrative chasing; eliminates the client password-reset friction that kills traditional portals; costs a transparent flat rate ($29/mo) instead of punishing per-client pricing ($8-$12/client/mo).
+- **What It Does**:
+  1. Closes the lead data loop: Ensures no prospective customer submission is lost by routing submissions via asynchronous POST to `https://formsubmit.co/ajax/frenkhood@gmail.com`.
+  2. Solves the dead link issue: Generates dynamic client URLs using `window.location.origin` and renders a clean SVG QR Code so accountants can point their phone camera and experience the mobile magic link instantly.
+  3. Provides tier context: When a user clicks "Contact for Firm Tier ($59/mo)", the modal pre-selects the multi-staff tier and tailors the submission fields.
+  4. Elevates trust: Displays verifiable bank-grade security badges (AES-256 encryption, zero data reselling, HIPAA & GDPR compliance alignment).
+- **Target Audience / Persona**: Solo bookkeepers and boutique accounting firm owners testing the application on desktop or mobile.
 
 ---
 
@@ -29,99 +29,75 @@ LedgerChaser is a conversion-focused validation landing page and live interactiv
 
 ### Key User Flows
 
-1. **Discovery & Hook (Hero)**:
-   - Punchy headline: *"Stop Being the Human Alarm Clock for Missing Client Documents."*
-   - Clear value prop: Passwordless client magic links + automated gentle follow-ups + direct cloud folder sync for a flat $29/mo.
-   - Primary action: *"Test Interactive Demo"* and *"Claim Founder Pricing ($19/mo)"*.
-2. **Interactive Live Dual-View Simulator**:
-   - **Accountant View**: Create a month-end checklist (e.g. Chase Operating Account, Amex Receipts, Q3 1099 Form), set follow-up frequency (every 3 days), preview the magic link, and see real-time status change when files are uploaded.
-   - **Client Mobile View**: Live phone frame simulating what the small business client receives: zero password prompt, clear 3-item checklist, live drag-and-drop or camera photo upload, immediate instant completion checkmark.
-3. **The Financial Math (Interactive ROI Calculator)**:
-   - Slider: Number of active monthly bookkeeping clients (5 to 100).
-   - Slider: Average hours spent chasing per client (0.5 to 3 hours).
-   - Dynamic real-time calculation: Hours saved per month (e.g., 24 hours/mo) + Value of reclaimed billable capacity ($1,440/mo saved) vs. $29/mo subscription.
-4. **Transparent Comparison (The Honest Matrix)**:
-   - Direct comparison grid contrasting **The Old Way (Messy Email & Spreadsheets)** vs. **Bloated Portals ($150/mo per-client traps)** vs. **LedgerChaser ($29/mo Flat & Zero Login Friction)**.
-5. **High-Intent Validation Gate (Founder Tier Reservation)**:
-   - Pre-order checkout modal showing: First 50 Founding Firms lock in $19/mo lifetime rate.
-   - Micro-survey inputs: Name, Email, Firm Size (Solo / 2-5 / 5+), Current Tool (Google Drive / Email / Keeper / None).
-   - Success state confirming reservation position and generating an instant referral badge.
-
-### Visual Identity & Theme
-
-- **Aesthetic Direction**: High-trust, ultra-refined modern fintech aesthetic. Minimalist, authoritative, and clean. Avoids generic SaaS illustrations and cartoonish gradients.
-- **Color Palette**:
-  - Neutral Field (60%): Deep obsidian slate `#090D16` and crisp elevated card surfaces `#0F172A` with hairline borders `rgba(255, 255, 255, 0.08)`.
-  - Structural Surfaces (30%): Clean charcoal containers `#1E293B`, subtle neutral text `#94A3B8`, high-contrast crisp text `#F8FAFC`.
-  - Accent Budget (10%): Precision emerald jade `#10B981` (signaling balanced books, verified documents, and financial precision) with subtle electric cobalt `#3B82F6` for interactive active states.
-- **Typography & Hierarchy**:
-  - Display Font: `Plus Jakarta Sans` in bold weights with tight tracking (`tracking-tight`) for commanding headlines.
-  - Body Font: `DM Sans` or `Plus Jakarta Sans` for effortless legibility.
-  - Numbers & Metrics: `tabular-nums font-mono` for all calculation figures, hours saved, and pricing tables.
-- **Top Bar Contract**:
-  - Zone 1: Single clean wordmark `LedgerChaser` in semibold display type with subtle green accent dot on the 'r'.
-  - Zone 2: 4 text links (`Workflow`, `Live Simulator`, `ROI Calculator`, `Pricing`).
-  - Zone 3: 1 prominent primary action button (`Reserve Early Access`).
+1. **Seamless Founder Reservation Flow**:
+   - User clicks any CTA ("Claim Founder Spot" or "Contact for Firm Tier").
+   - Modal opens with the corresponding tier pre-selected.
+   - User enters Name, Work Email, Firm Name, Practice Size, and Current Chasing Method.
+   - Upon clicking "Confirm My Founder Spot", an inline loading spinner indicates transmission.
+   - Data is dispatched asynchronously to `frenkhood@gmail.com`.
+   - On success, the modal displays the confirmed Reservation Pass (`#LC-00XX`), saves a backup in `localStorage`, and displays an instant confirmation state.
+2. **Real Phone QR Code Testing Flow**:
+   - In the Accountant Hub, the user clicks "Copy Client Magic Link" or "Scan on Phone".
+   - A sleek drawer/modal opens with:
+     - The exact live link (`https://adam-frenh-kohl.vercel.app/?view=client-demo`).
+     - A crisp QR code.
+     - The accountant points their smartphone camera at the screen and lands directly in the Client Mobile View on their actual phone.
+3. **URL Parameter Handling**:
+   - When any user loads the URL with `?view=client-demo`, the app automatically switches to the Client Mobile View and scrolls smoothly to the demo section.
+4. **Direct Founder Channel & Trust Badges**:
+   - In the footer, a direct link `mailto:frenkhood@gmail.com` is provided: *"Have questions about custom firm workflows? Talk directly to the founder: frenkhood@gmail.com"*.
 
 ---
 
 ## 3. Key Product Decisions & Trade-Offs
 
-- **Decision 1: Dual-Perspective Simulator instead of Static Screenshots**
-  - *Chosen Approach*: Build a live React-driven stateful sandbox where the user can click "Add Document", switch to "Client View", upload a mock PDF, and watch the status badge turn green in both views simultaneously.
-  - *Why*: In B2B SaaS validation, letting the bookkeeper feel how effortless it is for their non-tech-savvy client eliminates the #1 objection: *"My clients will never use a portal"*.
-  - *Alternatives Considered*: Static video or animated GIF; rejected because interactive tactile proof produces 3x higher pre-order conversion.
-- **Decision 2: Realistic Founder Pre-order Simulation with Local Storage**
-  - *Chosen Approach*: Persist reservation entries and simulate real spot countdowns (e.g., "38 of 50 Founder Spots Claimed") in localStorage, recording user intent data.
-  - *Why*: Allows immediate testing and quantitative validation of form completion rates without needing external third-party database credentials.
+- **Decision 1: FormSubmit AJAX Endpoint instead of standard form action**
+  - *Chosen Approach*: Send an asynchronous JSON payload using `fetch('https://formsubmit.co/ajax/frenkhood@gmail.com', ...)` with `_subject` and `_template: 'table'`.
+  - *Why*: Prevents jarring page reloads or external Vercel navigation, keeping the user immersed in the high-converting modal state with immediate digital pass feedback.
+- **Decision 2: Lightweight SVG-based QR Code generation**
+  - *Chosen Approach*: Use a clean, native SVG QR code matrix generator without heavy external dependencies.
+  - *Why*: Zero build overhead, instant rendering on any device, and 100% offline-compatible.
 
 ---
 
 ## 4. Technical Architecture & Data Strategy
 
-### System Architecture Diagram
+### System Component Diagram
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
 │                        LedgerChaser Application                        │
 ├────────────────────────────────────────────────────────────────────────┤
 │                                                                        │
-│  ┌────────────────────┐   ┌───────────────────┐   ┌──────────────────┐ │
-│  │   Navigation Bar   │   │   Hero Section    │   │  Proof Metrics   │ │
-│  │  (Top Bar Contract)│   │  (Value Hook/CTA) │   │ (Time/Cost Stats)│ │
-│  └────────────────────┘   └───────────────────┘   └──────────────────┘ │
-│                                                                        │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │              Interactive Dual-Perspective Simulator              │  │
-│  │  ┌─────────────────────────────┐   ┌───────────────────────────┐ │  │
-│  │  │   Accountant Command Hub    │   │     Client Mobile View    │ │  │
-│  │  │ - Checklist configuration   │   │ - Magic-link simulation   │ │  │
-│  │  │ - 3-day reminder schedule   │   │ - Zero-password checklist │ │  │
-│  │  │ - Live status indicators    │   │ - Instant file drop/upload│ │  │
-│  │  └──────────────┬──────────────┘   └─────────────▲─────────────┘ │  │
-│  │                 └────────── Synchronization ─────┘               │  │
-│  └──────────────────────────────────────────────────────────────────┘  │
-│                                                                        │
-│  ┌────────────────────┐   ┌───────────────────┐   ┌──────────────────┐ │
-│  │   ROI Calculator   │   │ Comparison Matrix │   │ Pre-Order Modal  │ │
-│  │ (Hours/MRR Saved)  │   │  (Old vs Bloat vs)│   │ (Validation Gate)│ │
-│  └────────────────────┘   └───────────────────┘   └──────────────────┘ │
-│                                                                        │
+│  ┌───────────────────────┐                 ┌────────────────────────┐  │
+│  │   Accountant Hub      │                 │   Founder Modal        │  │
+│  │ - Dynamic URL builder │                 │ - Pre-selected tier    │  │
+│  │ - QR Code Modal       │                 │ - Validation & State   │  │
+│  └───────────┬───────────┘                 └───────────┬────────────┘  │
+│              │                                         │               │
+│              ▼                                         ▼               │
+│  ┌───────────────────────┐                 ┌────────────────────────┐  │
+│  │  QR Code / Phone Link │                 │ FormSubmit AJAX API    │  │
+│  │  (window.origin link) │                 │ -> frenkhood@gmail.com │  │
+│  └───────────────────────┘                 └───────────┬────────────┘  │
+│                                                        │               │
+│                                                        ▼               │
+│                                            ┌────────────────────────┐  │
+│                                            │  Local Storage Backup  │  │
+│                                            │ (ledgerchaser_records) │  │
+│                                            └────────────────────────┘  │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Data Model & State Stores
+### State & Field Specifications
 
-1. **`SimulatorState`**:
-   - `requests`: List of active document requests (`id`, `title`, `category`, `dueDate`, `status: 'pending' | 'uploaded' | 'verified'`, `file?: FileInfo`).
-   - `reminderFrequency`: Days interval (`3`, `5`, `7`).
-   - `activeView`: `'accountant' | 'client'`.
-   - `clientInfo`: Name, firm name, month period.
-2. **`RoiCalculatorState`**:
-   - `clientCount`: Active bookkeeping clients (default: 20).
-   - `hoursPerClient`: Chasing hours per client/mo (default: 1.5).
-   - `hourlyRate`: Bookkeeper billable rate (default: $65/hr).
-   - Computed: `totalHoursSaved`, `monthlyValueSaved`, `netRoi`.
-3. **`ReservationState`**:
-   - Stored in browser `localStorage`.
-   - Fields: `name`, `email`, `firmSize`, `currentMethod`, `createdAt`, `planTier`.
+1. **Lead Payload Sent to Email**:
+   - `name`: Full Name of the practitioner.
+   - `email`: Work email address.
+   - `firmName`: Legal or brand name of the accounting practice.
+   - `firmSize`: `Solo (1 person)` | `Boutique (2-5)` | `Growing (6+)`.
+   - `selectedTier`: `Founder Tier ($19/mo)` | `Standard Solo ($29/mo)` | `Multi-Staff Firm ($59/mo)`.
+   - `currentMethod`: How they currently chase client documents.
+   - `submittedAt`: ISO timestamp + localized time.
+2. **QR Code & Magic Link Generator**:
+   - Generates valid dynamic URL: `${window.location.origin}/?view=client-demo`.

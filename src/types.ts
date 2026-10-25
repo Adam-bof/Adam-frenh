@@ -1,3 +1,5 @@
+export type PlanTier = 'founder-monthly' | 'standard-solo' | 'firm-pro';
+
 export interface DocumentRequest {
   id: string;
   title: string;
@@ -28,7 +30,7 @@ export interface FounderReservation {
   firmName: string;
   firmSize: 'solo' | '2-5' | '6+';
   currentMethod: 'sheets_email' | 'keeper' | 'content_snare' | 'drive_manual' | 'other';
-  planTier: 'founder-monthly' | 'founder-annual';
+  planTier: PlanTier;
   timestamp: string;
   reservationNumber: number;
 }

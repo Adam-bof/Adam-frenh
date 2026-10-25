@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { ArrowRight, Check, HelpCircle, ShieldCheck, Sparkles } from 'lucide-react';
+import { PlanTier } from '../types';
 
 interface PricingSectionProps {
-  onOpenFounderModal: () => void;
+  onOpenFounderModal: (tier?: PlanTier) => void;
   remainingSpots: number;
 }
 
@@ -88,10 +89,10 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
 
             <div className="mt-8 pt-4 border-t border-white/5">
               <button
-                onClick={onOpenFounderModal}
+                onClick={() => onOpenFounderModal('standard-solo')}
                 className="w-full rounded-xl bg-white/5 border border-white/15 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/10 transition-all active:scale-95"
               >
-                Get Started ($29/mo)
+                Select Solo Plan ($29/mo)
               </button>
             </div>
           </div>
@@ -152,7 +153,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
 
             <div className="mt-8 pt-4 border-t border-emerald-500/20">
               <button
-                onClick={onOpenFounderModal}
+                onClick={() => onOpenFounderModal('founder-monthly')}
                 className="w-full rounded-xl bg-emerald-500 px-4 py-3 text-xs font-bold text-slate-950 hover:bg-emerald-400 transition-all active:scale-95 shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-1.5"
               >
                 <span>Claim Founder Spot ($19/mo)</span>
@@ -205,10 +206,10 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
 
             <div className="mt-8 pt-4 border-t border-white/5">
               <button
-                onClick={onOpenFounderModal}
+                onClick={() => onOpenFounderModal('firm-pro')}
                 className="w-full rounded-xl bg-white/5 border border-white/15 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/10 transition-all active:scale-95"
               >
-                Contact for Firm Tier
+                Select Multi-Staff ($59/mo)
               </button>
             </div>
           </div>

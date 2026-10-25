@@ -1,33 +1,45 @@
-import React, { useState } from 'react';
-import { CheckCircle2, ShieldCheck, Sparkles, X } from 'lucide-react';
-import { FounderReservation } from '../types';
+import React, { useEffect, useState } from 'react';
+import { CheckCircle2, Loader2, ShieldCheck, Sparkles, X } from 'lucide-react';
+import { FounderReservation, PlanTier } from '../types';
 
 interface FounderModalProps {
   isOpen: boolean;
   onClose: () => void;
   onReservationSuccess: (reservation: FounderReservation) => void;
   remainingSpots: number;
+  initialTier?: PlanTier;
 }
 
 export const FounderModal: React.FC<FounderModalProps> = ({
   isOpen,
   onClose,
   onReservationSuccess,
-  remainingSpots
+  remainingSpots,
+  initialTier = 'founder-monthly'
 }) => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [firmName, setFirmName] = useState('');
   const [firmSize, setFirmSize] = useState<FounderReservation['firmSize']>('solo');
   const [currentMethod, setCurrentMethod] = useState<FounderReservation['currentMethod']>('sheets_email');
+  const [planTier, setPlanTier] = useState<PlanTier>(initialTier);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [confirmedReservation, setConfirmedReservation] = useState<FounderReservation | null>(null);
 
+  useEffect(() => {
+    if (initialTier) {
+      setPlanTier(initialTier);
+    }
+  }, [initialTier]);
+
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !fullName.trim()) return;
+
+    setIsSubmitting(true);
 
     const reservationNum = 50 - remainingSpots + 1;
     const newReservation: FounderReservation = {
@@ -37,12 +49,42 @@ export const FounderModal: React.FC<FounderModalProps> = ({
       firmName: firmName.trim() || 'Independent Practice',
       firmSize,
       currentMethod,
-      planTier: 'founder-monthly',
+      planTier,
       timestamp: new Date().toISOString(),
       reservationNumber: reservationNum
     };
 
-    // Save to localStorage
+    // 1. Dispatch directly to founder's email via FormSubmit AJAX API
+    try {
+      await fetch('https://formsubmit.co/ajax/frenkhood@gmail.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify({
+          _subject: `🔔 New LedgerChaser Lead: ${fullName.trim()} (${firmName.trim() || 'Solo Firm'})`,
+          _template: 'table',
+          'Full Name': fullName.trim(),
+          'Work Email': email.trim(),
+          'Firm Name': firmName.trim() || 'Independent Practice',
+          'Practice Size': firmSize,
+          'Selected Plan':
+            planTier === 'founder-monthly'
+              ? 'Founder Lifetime ($19/mo)'
+              : planTier === 'standard-solo'
+              ? 'Standard Solo ($29/mo)'
+              : 'Multi-Staff Firm ($59/mo)',
+          'Current Chasing Method': currentMethod,
+          'Reservation Number': `#LC-00${reservationNum}`,
+          'Submission Timestamp': new Date().toLocaleString()
+        })
+      });
+    } catch (err) {
+      console.warn('Form submission notification dispatch error (fallback to local)', err);
+    }
+
+    // 2. Save backup to browser localStorage
     try {
       const existing = JSON.parse(localStorage.getItem('ledgerchaser_reservations') || '[]');
       localStorage.setItem('ledgerchaser_reservations', JSON.stringify([...existing, newReservation]));
@@ -50,9 +92,21 @@ export const FounderModal: React.FC<FounderModalProps> = ({
       // ignore
     }
 
+    setIsSubmitting(false);
     setConfirmedReservation(newReservation);
     setIsSubmitted(true);
     onReservationSuccess(newReservation);
+  };
+
+  const getTierLabel = (tier: PlanTier) => {
+    switch (tier) {
+      case 'founder-monthly':
+        return 'Founder Tier ($19/mo Lifetime)';
+      case 'standard-solo':
+        return 'Standard Solo ($29/mo Flat)';
+      case 'firm-pro':
+        return 'Multi-Staff Firm ($59/mo Flat)';
+    }
   };
 
   return (
@@ -71,18 +125,36 @@ export const FounderModal: React.FC<FounderModalProps> = ({
             {/* Header */}
             <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 bg-emerald-950/50 border border-emerald-500/30 px-3 py-1 rounded-full mb-3">
               <Sparkles className="h-3.5 w-3.5" />
-              <span>{remainingSpots} of 50 Founder Spots Available</span>
+              <span>
+                {planTier === 'founder-monthly'
+                  ? `${remainingSpots} of 50 Founder Spots Available`
+                  : 'Selected: ' + getTierLabel(planTier)}
+              </span>
             </div>
 
             <h3 className="text-2xl font-bold text-white tracking-tight">
-              Lock In $19/mo Lifetime Founder Access
+              {planTier === 'firm-pro'
+                ? 'Join the Multi-Staff Early Access Cohort'
+                : 'Lock In $19/mo Lifetime Founder Access'}
             </h3>
             <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-              Join our first 50 founding accounting partners. Never pay per-client fees, and lock in
-              35% off the standard $29/mo rate forever. Full 30-day money-back guarantee.
+              Eliminate client password friction and month-end cat-herding. Your reservation code will be emailed directly to you with priority onboarding access.
             </p>
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-4 text-xs">
+              <div>
+                <label className="font-semibold text-slate-200">Plan Tier</label>
+                <select
+                  value={planTier}
+                  onChange={e => setPlanTier(e.target.value as PlanTier)}
+                  className="mt-1 w-full rounded-xl border border-emerald-500/40 bg-emerald-950/20 px-3.5 py-2.5 text-emerald-300 font-semibold focus:border-emerald-500 focus:outline-none"
+                >
+                  <option value="founder-monthly">Founding Practice — $19/mo Lifetime (35% Off Forever)</option>
+                  <option value="standard-solo">Standard Solo — $29/mo Flat</option>
+                  <option value="firm-pro">Multi-Staff Firm — $59/mo Flat</option>
+                </select>
+              </div>
+
               <div>
                 <label className="font-semibold text-slate-200">Full Name</label>
                 <input
@@ -124,7 +196,7 @@ export const FounderModal: React.FC<FounderModalProps> = ({
                   <select
                     value={firmSize}
                     onChange={e => setFirmSize(e.target.value as FounderReservation['firmSize'])}
-                    className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-white focus:border-emerald-500 focus:outline-none"
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3.5 py-2.5 text-white focus:border-emerald-500 focus:outline-none"
                   >
                     <option value="solo">Solo Bookkeeper (1 person)</option>
                     <option value="2-5">Boutique Team (2–5 people)</option>
@@ -139,7 +211,7 @@ export const FounderModal: React.FC<FounderModalProps> = ({
                     onChange={e =>
                       setCurrentMethod(e.target.value as FounderReservation['currentMethod'])
                     }
-                    className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-white focus:border-emerald-500 focus:outline-none"
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3.5 py-2.5 text-white focus:border-emerald-500 focus:outline-none"
                   >
                     <option value="sheets_email">Manual Email & Spreadsheets</option>
                     <option value="drive_manual">Google Drive / Dropbox folders</option>
@@ -153,13 +225,25 @@ export const FounderModal: React.FC<FounderModalProps> = ({
               <div className="pt-4 border-t border-white/10">
                 <button
                   type="submit"
-                  className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-bold text-slate-950 hover:bg-emerald-400 transition-all active:scale-95 shadow-lg shadow-emerald-500/25"
+                  disabled={isSubmitting}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3 text-sm font-bold text-slate-950 hover:bg-emerald-400 transition-all active:scale-95 shadow-lg shadow-emerald-500/25 disabled:opacity-50"
                 >
-                  Confirm My Founder Spot ($19/mo Lifetime)
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Confirming & Dispatching Pass...</span>
+                    </>
+                  ) : (
+                    <span>
+                      {planTier === 'firm-pro'
+                        ? 'Confirm Multi-Staff Priority Pass'
+                        : 'Confirm My Founder Spot ($19/mo Lifetime)'}
+                    </span>
+                  )}
                 </button>
                 <div className="flex items-center justify-center gap-1.5 mt-2.5 text-[11px] text-slate-400">
                   <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-                  <span>No credit card charged today. Priority rollout invitation.</span>
+                  <span>No credit card charged today. Direct notification sent to founder.</span>
                 </div>
               </div>
             </form>
@@ -172,12 +256,12 @@ export const FounderModal: React.FC<FounderModalProps> = ({
             </div>
 
             <span className="text-xs font-mono font-bold text-emerald-400 tracking-wider uppercase mt-4 block">
-              Reservation Confirmed
+              Reservation Confirmed & Logged
             </span>
             <h3 className="text-2xl font-bold text-white mt-1">Welcome to the Founding Cohort!</h3>
             <p className="text-xs text-slate-300 mt-2">
               We have reserved Founder Pass <strong>#{confirmedReservation?.reservationNumber}</strong> for{' '}
-              <span className="text-white font-semibold">{email}</span>.
+              <span className="text-white font-semibold">{email}</span>. A copy of your reservation details has been routed to our team.
             </p>
 
             {/* Founder Digital Pass Box */}
@@ -192,7 +276,9 @@ export const FounderModal: React.FC<FounderModalProps> = ({
               </div>
               <div className="flex justify-between text-slate-400">
                 <span>LIFETIME RATE:</span>
-                <span className="text-emerald-400 font-bold">$19 / Month Flat</span>
+                <span className="text-emerald-400 font-bold">
+                  {planTier === 'firm-pro' ? '$59 / Month' : '$19 / Month Flat'}
+                </span>
               </div>
               <div className="flex justify-between text-slate-400">
                 <span>EXCLUSIVE CODE:</span>
